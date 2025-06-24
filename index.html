@@ -1,11 +1,440 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Chúc Mừng Tốt Nghiệp!</title>
+    <style>
+        /* =================================================================
+           PHẦN CSS - ĐỊNH DẠNG GIAO DIỆN VÀ ANIMATION
+           ================================================================= */
+        
+        :root {
+            --stair-glow: #ffffff;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000;
+        }
+
+        #star-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            opacity: 0;
+            transition: opacity 2.5s ease-in-out;
+        }
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            animation: sparkle 5s infinite ease-in-out;
+        }
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        #intro-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #000; color: #fff;
+            display: flex; justify-content: center; align-items: center;
+            text-align: center; z-index: 100;
+            transition: opacity 1s ease-in-out;
+        }
+        #intro-text { font-size: 2.5em; opacity: 0; transition: opacity 0.8s ease-in-out; }
+        #intro-text.visible { opacity: 1; }
+
+        #main-scene {
+            display: none; position: relative;
+            width: 100%; height: 100%;
+            background-color: transparent; 
+            z-index: 1;
+        }
+        
+        #spotlight {
+            position: absolute; top: 0; left: 50%; width: 500px; height: 100%;
+            transform: translateX(-50%);
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.35), transparent 80%);
+            clip-path: polygon(30% 0, 70% 0, 100% 100%, 0% 100%);
+            z-index: 5; opacity: 0;
+            transition: opacity 2s ease-in-out;
+        }
+        #spotlight.on { opacity: 1; }
+
+        #stage-container {
+            position: absolute; bottom: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 100%; height: 100%;
+            /* CẬP NHẬT: Điều chỉnh perspective để hiệu ứng 3D tốt hơn trên mọi màn hình */
+            perspective: 550px; 
+            z-index: 2;
+        }
+
+        /* CẬP NHẬT: Sân khấu Responsive */
+        #stage {
+            position: absolute; bottom: 65%; left: 50%;
+            transform: translateX(-50%);
+            width: 100vw; /* Chiếm toàn bộ chiều rộng màn hình */
+            max-width: 800px; /* Nhưng không lớn hơn 800px */
+            height: 70px;
+            background-color: transparent;
+            border: 3px solid transparent;
+            transition: background-color 2s, border-color 2s;
+        }
+        #main-scene.lit #stage {
+            background-color: #000;
+            background-image: radial-gradient(circle at center, rgba(255, 255, 255, 0.15) 0%, transparent 40%);
+            background-size: 20px 20px;
+            border-color: #fff;
+            animation: glow-border 2s infinite alternate;
+        }
+        @keyframes glow-border {
+            from { box-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #e1bee7; }
+            to { box-shadow: 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #e1bee7; }
+        }
+        
+        /* CẬP NHẬT: Cầu thang Responsive */
+        .stair {
+            position: absolute; left: 50%; transform-style: preserve-3d;
+            transform-origin: center bottom; transform: translateX(-50%) rotateX(75deg);
+            height: 25px;
+            border-left: 3px solid transparent; border-right: 3px solid transparent;
+            border-bottom: 3px solid transparent; border-top: none;
+            transition: border-color 0.5s, box-shadow 0.5s;
+        }
+        .stair.glow {
+            border-color: var(--stair-glow);
+            box-shadow: 0 0 15px var(--stair-glow);
+        }
+        /* Sử dụng vw để tự động co giãn và max-width để giới hạn kích thước */
+        #stair-1 { width: 40vw; max-width: 300px; bottom: 0; } 
+        #stair-2 { width: 47vw; max-width: 355px; bottom: 20px; }
+        #stair-3 { width: 54vw; max-width: 410px; bottom: 40px; } 
+        #stair-4 { width: 61vw; max-width: 465px; bottom: 60px; }
+        #stair-5 { width: 68vw; max-width: 520px; bottom: 80px; } 
+        #stair-6 { width: 75vw; max-width: 575px; bottom: 100px; }
+        #stair-7 { width: 82vw; max-width: 630px; bottom: 120px; } 
+        #stair-8 { width: 89vw; max-width: 685px; bottom: 140px; }
+        #stair-9 { width: 96vw; max-width: 740px; bottom: 160px; }
+
+        /* --- Nhân vật --- */
+        .character {
+            position: absolute; width: 50px; height: 120px;
+            transform: translateX(-50%); z-index: 10;
+        }
+        .character .character-body {
+            position: absolute; bottom: 0; width: 100%; height: 70px;
+            background-color: #333; border-radius: 10px 10px 0 0;
+        }
+        .character .character-head {
+            position: absolute; top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 50px; height: 50px;
+            background-color: #fdd835; border-radius: 50%;
+            background-size: cover; background-position: center;
+            transition: background-image 0.5s;
+        }
+        
+        #recipient { bottom: -150px; left: 50%; }
+        #sender { bottom: -150px; left: 50%; }
+        
+        #teacher {
+            bottom: 65%;
+            left: calc(50% - 150px);
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+        .teacher-body { background-color: #444 !important; }
+        .teacher-head::after {
+            content: ''; position: absolute; top: -5px; left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+            width: 30px; height: 30px;
+            background-color: #222; border: 1px solid #555;
+        }
+        
+        #diploma {
+            position: absolute; width: 25px; height: 8px;
+            background-color: #fff; border: 1px solid #ccc;
+            border-radius: 5px; bottom: 40px; left: -15px;
+            transition: transform 1s ease-in-out;
+        }
+        #diploma::before {
+            content: ''; position: absolute; width: 5px; height: 100%;
+            background-color: red; left: 50%; top: 0;
+            transform: translateX(-50%);
+        }
+        
+        /* --- Ảnh và Biểu cảm --- */
+        .recipient-head { background-image: url('./face_L.png'); }
+        .sender-head { background-image: url('./face_N_2.png'); }
+        .teacher-head { background-image: url('./face_teacher.png'); }
+        .happy-face { background-image: url('./face_L_happy_2.png') !important; }
+        .shy-face { background-image: url('./face_L_shy.png') !important; }
+        
+        /* CẬP NHẬT: Animations cho sân khấu lớn hơn và vị trí gần hơn */
+        @keyframes walk-to-teacher {
+            0% { bottom: -150px; left: 50%; transform: translateX(-50%) scale(0.6); }
+            100% { bottom: 65%; left: calc(50% - 80px); transform: translateX(-50%) scale(1); }
+        }
+        @keyframes sender-walk-up {
+            0% { bottom: -150px; left: 50%; transform: translateX(-50%) scale(0.6); }
+            /* Vị trí cuối cùng gần người nhận hơn */
+            100% { bottom: 65%; left: calc(50% - 20px); transform: translateX(-50%) scale(1); }
+        }
+        #recipient.is-walking { animation: walk-to-teacher 5s ease-in-out forwards; }
+        #sender.is-walking { animation: sender-walk-up 5s ease-in-out forwards; }
+        
+        #gift-box {
+            position: absolute; width: 30px; height: 30px;
+            background-color: #e91e63; bottom: 20px; left: -35px;
+            border: 2px solid #ad1457; opacity: 0;
+            transition: opacity 0.5s;
+        }
+        #sender.is-walking #gift-box { opacity: 1; }
+
+        /* --- Pháo hoa và Popup (Không thay đổi) --- */
+        #fireworks-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; }
+        .particle { position: absolute; width: 5px; height: 5px; border-radius: 50%; opacity: 0; }
+        @keyframes explode { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+        .popup-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 30; opacity: 0; transition: opacity 0.5s; }
+        .popup-container.visible { display: flex; opacity: 1; }
+        #popup-box { background-color: #fff; padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0 5px 25px rgba(0,0,0,0.5); transform: scale(0.7); transition: transform 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        .popup-container.visible #popup-box { transform: scale(1); }
+        .popup-gif { width: 100px; height: auto; margin-bottom: 15px; }
+        #popup-box p { font-size: 1.5em; margin-bottom: 20px; }
+        #open-gift-btn { padding: 10px 30px; font-size: 1.2em; cursor: pointer; border: none; border-radius: 5px; background-color: #ff4081; color: white; transition: background-color 0.3s, transform 0.2s; }
+        #open-gift-btn:hover { background-color: #f50057; }
+        #open-gift-btn:active { transform: scale(0.95); }
+        #letter-container { background-color: #fdf5e6; padding: 40px; border-radius: 5px; border: 1px solid #d2b48c; box-shadow: 5px 5px 15px rgba(0,0,0,0.2); width: 80%; max-width: 600px; max-height: 80vh; overflow-y: auto; font-family: 'Courier New', Courier, monospace; line-height: 1.8; font-size: 1.2em; color: #5b4636; }
+        #letter-content { white-space: pre-wrap; }
+        #letter-content h2 { text-align: center; color: #8b4513; }
+        .letter-icon { width: 30px; height: 30px; vertical-align: middle; margin: 0 5px; }
+    </style>
 </head>
 <body>
-    <h2>hello</h2>
+    <div id="star-container"></div>
+    <div id="intro-screen"><p id="intro-text"></p></div>
+
+    <div id="main-scene">
+        <div id="spotlight"></div>
+        <div id="fireworks-container"></div>
+        <div id="stage-container">
+            <div id="stair-1" class="stair"></div> <div id="stair-2" class="stair"></div>
+            <div id="stair-3" class="stair"></div> <div id="stair-4" class="stair"></div>
+            <div id="stair-5" class="stair"></div> <div id="stair-6" class="stair"></div>
+            <div id="stair-7" class="stair"></div> <div id="stair-8" class="stair"></div>
+            <div id="stair-9" class="stair"></div>
+            <div id="stage"></div>
+            <div id="teacher" class="character">
+                <div class="character-head teacher-head"></div>
+                <div class="character-body teacher-body"><div id="diploma"></div></div>
+            </div>
+            <div id="recipient" class="character">
+                <div class="character-head recipient-head"></div>
+                <div class="character-body"></div>
+            </div>
+            <div id="sender" class="character">
+                <div class="character-head sender-head"></div>
+                <div class="character-body"><div id="gift-box"></div></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="popup-container" class="popup-container">
+        <div id="popup-box">
+            <img src="./icegif-187.gif" alt="Cute GIF" class="popup-gif">
+            <p>Chúc mừng iem tốt nghiệp, tặng e nè !</p>
+            <button id="open-gift-btn">Coáaaaa</button>
+        </div>
+    </div>
+    
+    <div id="letter-popup" class="popup-container">
+        <div id="letter-container">
+            <div id="letter-content">
+<h2>Chúc mừng tốt nghiệp Lan Ngô</h2>
+4 năm vất vả thì cuối cùng cũng được đền đáp rồii nhỉ! <img src="./4204771e1c54c2b9afa36f668261e7bd.gif" class="letter-icon" alt="dance">
+Tiếp theo sẽ là một chặn đường mới, mong em có thể tự tin đối diện nhé! <img src="./85311f39e674454dfc7fc12fd6ce01d7.gif" class="letter-icon" alt="sparkle">
+Chúc em có thật nhiều sức khoẻ và năng lượng, để có thể vừa làm vừa chơi tẹt ga.
+Có thể gặp gỡ được thêm nhiều bạn bè mới, đồng nghiệp mới, sếp mới thật dễ thương, dễ mến.
+Gặp nhiều điều tốt đẹp trong cuộc sống, công việc, tình cảm <img src="./ljSjEjQ.gif" class="letter-icon" alt="hug">
+Do khoảng cách hơi xa, thời gian không cho phép nên không thể đến dự lễ tốt nghiệp của em được, thật lòng xin lỗi nhé !
+<img src="./images.jpg" class="letter-icon" alt="stars"><img src="./images.jpg" class="letter-icon" alt="stars"><img src="./images.jpg" class="letter-icon" alt="stars">
+- Nam -
+            </div>
+        </div>
+    </div>
+
+    <script>
+    window.onload = function() {
+        const starContainer = document.getElementById('star-container');
+        const introScreen = document.getElementById('intro-screen');
+        const introText = document.getElementById('intro-text');
+        const mainScene = document.getElementById('main-scene');
+        const spotlight = document.getElementById('spotlight');
+        const teacher = document.getElementById('teacher');
+        const recipient = document.getElementById('recipient');
+        const recipientHead = document.querySelector('.recipient-head');
+        const recipientBody = recipient.querySelector('.character-body');
+        const sender = document.getElementById('sender');
+        const diploma = document.getElementById('diploma');
+        const popupContainer = document.getElementById('popup-container');
+        const openGiftBtn = document.getElementById('open-gift-btn');
+        const letterPopup = document.getElementById('letter-popup');
+        const fireworksContainer = document.getElementById('fireworks-container');
+        
+        const introTexts = [
+            "Mới đây mà đã tốt nghiệp ròi ta!", "Trưởng thành ròi,",
+            "Có thêm nhiều trách nhiệm hơn ròi,", "Bây giờ","Chắc đang vui lắmm nhở","A cũng vui, và","Chúc mừng bạn Lan tốt nghiệp nhé:> !",
+            "Khoan chờ xíu","3...","2...","1,...","..."
+        ];
+        let currentTextIndex = 0;
+        
+        function createStars(count) {
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() * 3 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 5}s`;
+                star.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                starContainer.appendChild(star);
+            }
+        }
+        
+        function startSequence() { 
+            createStars(200);
+            showIntroText(); 
+        }
+
+        function showIntroText() {
+            if (currentTextIndex < introTexts.length) {
+                introText.textContent = introTexts[currentTextIndex];
+                introText.classList.add('visible');
+                setTimeout(() => {
+                    introText.classList.remove('visible');
+                    setTimeout(() => {
+                        currentTextIndex++;
+                        showIntroText();
+                    }, 1000);
+                }, 2500);
+            } else {
+                transitionToMainScene();
+            }
+        }
+        
+        function transitionToMainScene() {
+            introScreen.style.opacity = '0';
+            setTimeout(() => {
+                introScreen.style.display = 'none';
+                mainScene.style.display = 'block';
+                startMainScene();
+            }, 1000);
+        }
+        
+        function startMainScene() {
+            const stairs = document.querySelectorAll('.stair');
+            let totalStairTime = 0;
+            stairs.forEach((stair, index) => {
+                const delay = index * 500; 
+                setTimeout(() => { stair.classList.add('glow'); }, delay);
+                totalStairTime = delay;
+            });
+            
+            setTimeout(() => {
+                mainScene.classList.add('lit');
+                spotlight.classList.add('on');
+                starContainer.style.opacity = '1'; 
+            }, totalStairTime + 500);
+
+            setTimeout(() => {
+                teacher.style.opacity = '1';
+            }, totalStairTime + 1000);
+
+            setTimeout(() => {
+                startRecipientWalk();
+            }, totalStairTime + 2500);
+        }
+        
+        function startRecipientWalk() {
+            recipient.classList.add('is-walking');
+            recipient.addEventListener('animationend', () => { receiveDiploma(); }, { once: true });
+        }
+
+        function receiveDiploma() {
+            diploma.style.transform = 'translateX(35px) translateY(-5px) rotate(-15deg)';
+            setTimeout(() => {
+                recipientBody.appendChild(diploma);
+                diploma.style.transform = '';
+                diploma.style.left = '35px';
+                diploma.style.bottom = '45px';
+                celebrate();
+            }, 1000);
+        }
+        
+        function celebrate() {
+            recipientHead.classList.add('happy-face');
+            launchFireworks(5);
+            setTimeout(() => { startSenderWalk(); }, 2000);
+        }
+        
+        function startSenderWalk() {
+            sender.classList.add('is-walking');
+            sender.addEventListener('animationend', () => { giveGift(); }, { once: true });
+        }
+        
+        function giveGift() {
+            document.getElementById('gift-box').style.opacity = '0';
+            recipientHead.classList.remove('happy-face');
+            setTimeout(() => { recipientHead.classList.add('shy-face'); }, 100);
+            // CẬP NHẬT: Tăng thời gian chờ trước khi hiện popup
+            setTimeout(() => { popupContainer.classList.add('visible'); }, 1800);
+        }
+
+        openGiftBtn.addEventListener('click', () => {
+            popupContainer.classList.remove('visible');
+            setTimeout(() => {
+                popupContainer.style.display = 'none';
+                letterPopup.classList.add('visible');
+            }, 500);
+        });
+
+        function launchFireworks(count) {
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => { createFirework(); }, i * 400);
+            }
+        }
+        
+        function createFirework() {
+            const firework = document.createElement('div');
+            fireworksContainer.appendChild(firework);
+            const colors = ['#ffeb3b', '#ffc107', '#8bc34a', '#03a9f4', '#e91e63'];
+            const x = Math.random() * 80 + 10;
+            const y = Math.random() * 40 + 10;
+            firework.style.left = `${x}%`; firework.style.top = `${y}%`;
+            for(let i=0; i<50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const angle = Math.random() * 360;
+                const distance = Math.random() * 100 + 50;
+                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.transform = `rotate(${angle}deg) translateX(${distance}px) rotate(-${angle}deg)`;
+                particle.style.animation = `explode 1s ease-out forwards`;
+                firework.appendChild(particle);
+            }
+            setTimeout(() => { fireworksContainer.removeChild(firework); }, 1000);
+        }
+
+        startSequence();
+    };
+    </script>
 </body>
 </html>
